@@ -2,13 +2,14 @@
 #define MGCG_H
 
 #include "CCF.h"
-#include "vector2d.h"
 
-template<typename T>
-double GaussSeidel(const CCF<T> & mat, vec<T> & unknown, vec<T> & unknown_new, vec<T> & rhs, const int & ITR_MAX)
+const int GS_ITR_MAX=100;
+
+template<typename E, typename T>
+double GaussSeidel(const CCF<T> & mat, E & unknown, E & unknown_new, const E & rhs, const int & ITR_MAX)
 {
     double err=1.;
-    for(int itr=0;itr<ITR_MAX&&err>1.0E-7;itr++)
+    for(int itr=0;itr<ITR_MAX&&err>1.0E-8;itr++)
     {
         err=0.;
         for(int i=0;i<mat.size();i++)
@@ -34,40 +35,104 @@ double GaussSeidel(const CCF<T> & mat, vec<T> & unknown, vec<T> & unknown_new, v
             unknown(i)=unknown_new(i);
         }
         err/=double(mat.size());
-        cout<<err<<endl;
+        err = sqrt(err);
+        //cout<<itr<<"  "<<err<<endl;
     }
     return err;
 }
 
-
-//********M: grid number*****************
-template<typename T, int M>
-class MGCG2d
+//***********************************************************
+/*
+Nx : mesh number of x direction
+Ny : mesh number of y direction
+M  : grid number of the coarse and fine grids
+O : the coarsest
+M-1: the finest
+*/
+//***************************M: grid number*****************
+template<typename E, typename T, int M>
+class MGCG
 {
 public:
-    MGCG2d();
+    MGCG();
     void Solve();
+
+
+    void Solve(const int & k);//solve in k-th grid
+    void Solve(const E & );//solve for given rhs
+    virtual void FineToCoarse(const int & k)=0;//from k to k-1
+    virtual void CoarseToFine(const int & k)=0;//from k to k+1
     virtual void SetMat()=0;
     virtual void SetRHS()=0;
 //protected:
+//Used for Conjugate Gradient
+    E _b;
+    E _u;
+    E _r;
+    E _z;
+    E _p;
+    E _Ap;
+//Used for Multi-grid
     CCF<T> * _mat;
-    Vec2d<T> * _rhs;
-    Vec2d<T> * _unknown;
-    Vec2d<T> * _unknown_new;
+    E * _rhs;
+    E * _err;
+    E * _unknown;
+    E * _unknown_new;
 };
 
-template<typename T, int M>
-MGCG2d<T,M>::MGCG2d()
+template<typename E, typename T, int M>
+MGCG<E,T,M>::MGCG()
 {
     _mat = new CCF<T> [M];
-    _rhs = new Vec2d<T> [M];
-    _unknown = new Vec2d<T> [M];
-    _unknown_new = new Vec2d<T> [M];
+    _err = new E [M];
+    _rhs = new E [M];
+    _unknown = new E [M];
+    _unknown_new = new E [M];
 }
 
-template<typename T, int M>
-void MGCG2d<T,M>::Solve()
+template<typename E, typename T, int M>
+void MGCG<E,T,M>::Solve(const int & k)
 {
-    cout<<GaussSeidel(_mat[M-1],_unknown[M-1],_unknown_new[M-1],_rhs[M-1],100)<<endl;
+    cout<<k<<"  "<<GaussSeidel(_mat[k],_unknown[k],_unknown_new[k],_rhs[k],GS_ITR_MAX)<<endl;
+    for(int i=0;i<_mat[k].size();i++)
+    {
+        _err[k](i) = _rhs[k](i)-_mat[k].data( _mat[k].colptr(i)-1)*_unknown[k](i);
+    }
+    for(int i=0;i<_mat[k].size();i++)
+    {
+        //Diagonal is located at colptr[i]-1
+        for(int j=_mat[k].colptr(i);j<_mat[k].colptr(i+1)-1;j++)
+        {
+            _err[k](i) -= _mat[k].data(j)* _unknown[k]( _mat[k].rowind(j)-1 );
+            _err[k]( _mat[k].rowind(j)-1 ) -= _unknown[k](i) * _mat[k].data(j);
+        }
+    }
+}
+
+template<typename E, typename T, int M>
+void MGCG<E,T,M>::Solve()
+{
+    Solve(_b);
+}
+
+template<typename E, typename T, int M>
+void MGCG<E,T,M>::Solve(const E & rhs)
+{
+    _rhs[M-1]=rhs;
+    _unknown[M-1]=_rhs[M-1];
+    Solve(M-1);
+    for(int itr=0;itr<40;itr++)
+    {for(int k=M-1;k>0;k--)
+    {
+        FineToCoarse(k);
+        _unknown[k-1]=_rhs[k-1];
+        Solve(k-1);
+    }
+    for(int k=0;k<M-1;k++)
+    {
+        CoarseToFine(k);
+        Solve(k+1);
+    }
+    }
 }
 #endif // MGCG_H

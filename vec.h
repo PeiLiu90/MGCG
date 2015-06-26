@@ -57,6 +57,14 @@ public:
 
     const int & size() const {return _size;}
 
+    const Vec<T> & operator=(const Vec<T> & u)
+    {
+        for(int i=0;i<_size;i++)
+        {
+            _data[i]=u(i);
+        }
+        return *this;
+    }
     template<typename E>
     const Vec<T> & operator=(const VecExpression<E,T> & u)
     {
@@ -226,6 +234,17 @@ T norm(const VecExpression<E,T> & u)
     }
     tmp/=T(u.size());
     return sqrt(tmp);
+}
+
+template<typename E, typename T>
+T normmax(const VecExpression<E,T> & u)
+{
+    T tmp=0;
+    for(int i=0;i<u.size();i++)
+    {
+        tmp= tmp>fabs(u(i))? tmp : fabs(u(i));
+    }
+    return tmp;
 }
 
 template<typename E, typename T>

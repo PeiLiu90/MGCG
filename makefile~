@@ -3,8 +3,6 @@ CFLAGS=-O3
 
 objects = main.o
 
-all: $(objects) run
-
 $(objects): %.o: %.cpp
 	$(CXX) -c $(CFLAGS) $< -o $@ 
 

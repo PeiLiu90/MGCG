@@ -59,6 +59,15 @@ public:
     int size1() const {return _N;}
     int size2() const {return _M;}
 
+    const Vec2d<T> & operator=(const Vec2d<T> & u)
+    {
+        for(int i=0;i<_size;i++)
+        {
+            _data[i]=u(i);
+        }
+        return *this;
+    }
+
     template<typename E>
     const Vec2d<T> & operator=(const VecExpression<E,T> & u)
     {

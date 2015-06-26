@@ -1,6 +1,7 @@
 #ifndef HELMHOLTZ2D_H
 #define HELMHOLTZ2D_H
 
+#include "vector2d.h"
 #include "MGCG.h"
 #include "math.h"
 #include "Equation.h"
@@ -18,12 +19,15 @@ M-1: the finest
 */
 //************************************************************
 template<typename T, int Nx, int Ny, int M>
-class Helmholtz2d : public MGCG2d<T,M>
+class Helmholtz2d : public MGCG<Vec2d<T>,T,M>
 {
 public:
     Helmholtz2d(const double & h);
     void SetMat();
     void SetRHS();
+    void FineToCoarse(const int & k);
+    void CoarseToFine(const int & k);
+    T ComputeErr(const int & k) const ;
 
     int Index(const int & , const int & , const int &);
 //private:
@@ -49,6 +53,7 @@ Helmholtz2d<T,Nx,Ny,M>::Helmholtz2d(const double & h)
         _size[i][1]=Ny*pow(2,i);
         this->_mat[i].SetSize(_size[i][0]*_size[i][1]);
         this->_mat[i].SetLength(_size[i][0]*_size[i][1]*3);
+        this->_err[i].SetSize(_size[i][0],_size[i][1]);
         this->_rhs[i].SetSize(_size[i][0],_size[i][1]);
         this->_unknown[i].SetSize(_size[i][0],_size[i][1]);
         this->_unknown_new[i].SetSize(_size[i][0],_size[i][1]);
@@ -63,6 +68,12 @@ Helmholtz2d<T,Nx,Ny,M>::Helmholtz2d(const double & h)
             }
         }
     }
+    this->_b.SetSize(_size[M-1][0],_size[M-1][1]);
+    this->_u.SetSize(_size[M-1][0],_size[M-1][1]);
+    this->_r.SetSize(_size[M-1][0],_size[M-1][1]);
+    this->_z.SetSize(_size[M-1][0],_size[M-1][1]);
+    this->_p.SetSize(_size[M-1][0],_size[M-1][1]);
+    this->_Ap.SetSize(_size[M-1][0],_size[M-1][1]);
     _x = new double [_size[M-1][0]];
     _y = new double [_size[M-1][1]];
     for(int i=0;i<_size[M-1][0];i++)
@@ -106,28 +117,28 @@ void Helmholtz2d<T,Nx,Ny,M>::SetMat()
                 if(row > col)
                 {
                     this->_mat[k].rowind(index)=row;
-                    this->_mat[k].data(index)= (_eps[k](Index(k,i,j))+_eps[k](Index(k,i,j+1)))*0.5;
+                    this->_mat[k].data(index)= -(_eps[k](Index(k,i,j))+_eps[k](Index(k,i,j+1)))*0.5;
                     index++;
                 }
                 row = Index(k,i,j-1) +1;
                 if(row > col)
                 {
                     this->_mat[k].rowind(index)=row;
-                    this->_mat[k].data(index)=(_eps[k](Index(k,i,j))+_eps[k](Index(k,i,j-1)))*0.5;
+                    this->_mat[k].data(index)=-(_eps[k](Index(k,i,j))+_eps[k](Index(k,i,j-1)))*0.5;
                     index++;
                 }
                 row = Index(k,i+1,j) +1;
                 if(row > col)
                 {
                     this->_mat[k].rowind(index)=row;
-                    this->_mat[k].data(index)=(_eps[k](Index(k,i,j))+_eps[k](Index(k,i+1,j)))*0.5;
+                    this->_mat[k].data(index)=-(_eps[k](Index(k,i,j))+_eps[k](Index(k,i+1,j)))*0.5;
                     index++;
                 }
                 row = Index(k,i-1,j) +1;
                 if(row > col)
                 {
                     this->_mat[k].rowind(index)=row;
-                    this->_mat[k].data(index)=(_eps[k](Index(k,i,j))+_eps[k](Index(k,i-1,j)))*0.5;
+                    this->_mat[k].data(index)=-(_eps[k](Index(k,i,j))+_eps[k](Index(k,i-1,j)))*0.5;
                     index++;
                 }
             }
@@ -144,8 +155,35 @@ void Helmholtz2d<T,Nx,Ny,M>::SetRHS()
     {
         for(int j=0;j<_size[M-1][1];j++)
         {
-            this->_rhs[M-1](i,j)= source(_x[i],_y[j]);
+            this->_b(i,j)= source(_x[i],_y[j])*_h[M-1]*_h[M-1];
             _exact(i,j) = exact(_x[i],_y[j]);
+        }
+    }
+}
+
+template<typename T, int Nx, int Ny, int M>
+void Helmholtz2d<T,Nx,Ny,M>::FineToCoarse(const int & k)
+{
+    for(int i=0;i<_size[k-1][0];i++)
+    {
+        for( int j=0;j<_size[k-1][1];j++)
+        {
+            this->_rhs[k-1](i,j)=this->_err[k](i*2,j*2);
+        }
+    }
+}
+
+template<typename T, int Nx, int Ny, int M>
+void Helmholtz2d<T,Nx,Ny,M>::CoarseToFine(const int & k)
+{
+    for(int i=0;i<_size[k][0];i++)
+    {
+        for( int j=0;j<_size[k][1];j++)
+        {
+            this->_unknown[k+1](i*2,j*2)+=this->_unknown[k](i,j);
+            this->_unknown[k+1](i*2+1,j*2)+=(this->_unknown[k](i,j)+this->_unknown[k](i+1,j))*0.5;
+            this->_unknown[k+1](i*2,j*2+1)+=(this->_unknown[k](i,j)+this->_unknown[k](i,j+1))*0.5;
+            this->_unknown[k+1](i*2+1,j*2+1)+=(this->_unknown[k](i,j)+this->_unknown[k](i+1,j)+this->_unknown[k](i,j+1)+this->_unknown[k](i+1,j+1))*0.25;
         }
     }
 }
