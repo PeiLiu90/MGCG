@@ -1,0 +1,124 @@
+\documentclass{article}
+
+\usepackage{indentfirst}
+\setlength{\textwidth}{15cm}
+\setlength{\textheight}{22cm}
+\setlength{\topmargin}{-1cm}
+\setlength{\oddsidemargin 1cm}
+\setlength{\evensidemargin 1cm}
+\setlength{\topskip 0cm}
+\setlength{\footskip 1cm}
+
+\usepackage{graphicx}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{bm}
+
+\graphicspath{{../data/}}
+
+\begin{document}
+
+\title{Notes on Multigrid Preconditioned Conjugate Gradient Method}
+%\author{Pei Liu\thanks{Department of Mathematics \& Institute of Nature Sciences, Shanghai Jiao Tong University}}
+\maketitle
+
+\section{Introduction}
+For high dimensional(2D or 3D) Variable Coefficients Elliptic PDEs, we need to solve a large sparse linear equation. FFT is no longer valid due to the coefficients is dependent on coordinates.
+
+Conjugate Gradient method is good for such linear system, especially with a proper preconditioner. People have proved multigrid method could be a good choice. The resulting algorithm is then called Multigrid Preconditioned Conjugate Gradient Method (MGCG).
+
+\section{MGCG}
+We have to notice that the preconditioner for CG have some constraints: positive definite and symmetric. So, not all multigrid method could be used. 
+
+\subsection{Smoother}
+
+the smoother need to be symmetric, which means Gauss-Seidel and SOR is excluded. We could use damped Jacobi, Red-Black Symmetric Gauss Seidel or Multi-Color Symmetric Successive Over-Relaxation.
+
+I choose RBSGS for it is easy to parallelism. The key ideal is to decompose the grid into two set: one is label as 'red', the other is label as 'black'. 
+
+For 2D elliptic equation:
+\begin{equation}
+-\nabla \epsilon \nabla u + k^2 u= f
+\end{equation}
+with $\epsilon$ a scalar, it is discretized as :
+\begin{eqnarray}
+ k_{i,j} u_{i,j}+ \frac{\epsilon_{i-,j}(u_{i,j} -u_{i-1,j})+\epsilon_{i+,j}(u_{i,j}-u_{i+1,j})}{h_x^2} + \hspace{2cm}\nonumber \\
+\frac{\epsilon_{i,j-}(u_{i,j} -u_{i,j-1})+\epsilon_{i,j+}(u_{i,j}-u_{i,j+1})}{h_y^2}  = f_{i,j}
+\end{eqnarray}
+
+If $(i,j)$ is 'red', then $(i-1,j),(i+1,j),(i,j-1),(i,j+1)$ is 'black'.
+So that, the linear equation can be written as:
+\begin{equation}
+\left(
+\begin{array}{cc}
+D_r & C\\
+C^T & D_b
+\end{array}
+\right)\left(
+\begin{array}{c}
+u_r\\
+u_b
+\end{array}
+\right)=\left(
+\begin{array}{c}
+f_r\\
+f_b
+\end{array}
+\right)
+\end{equation}
+where $D_r$ and $D_b$ are diagonal matrix, $C$ is sparse square matrix.
+
+RBSGS has three steps:
+\begin{itemize}
+\item[(1)], $D_r u_r^{(n+1/2)} = f_r - C u^{(n)}_b$
+\item[(2)], $D_b u_b^{(n+1)} = f_b - C^T u^{(n+1/2)}_r$
+\item[(3)], $D_r u_r^{(n+1)} = f_r - C u^{(n+1)}_b$
+\end{itemize}
+In matrix form:
+\begin{equation}
+\left(
+\begin{array}{cc}
+D_r & C\\
+C^T & D_b+C^TD_r^{-1}C
+\end{array}
+\right)\left(
+\begin{array}{c}
+u_r^{(n+1)}\\
+u_b^{(n+1)}
+\end{array}
+\right)=\left(
+\begin{array}{c}
+f_r\\
+f_b
+\end{array}
+\right)+\left(\begin{array}{cc}
+0 & 0\\
+0 & C^TD_r^{-1}C
+\end{array}
+\right)\left(
+\begin{array}{c}
+u_r^{(n)}\\
+u_b^{(n)}
+\end{array}
+\right)
+\end{equation}
+
+\subsection{Projection}
+To ensure the preconditioner is symmetric, we could first require the restriction operator $r$ from fine grid to coarse grid is the transpose(adjoint) of the prolongation operator $p$ from coarse grid to fine grid: $r=b p^T$ where $b$ is a constant to ensure $r*p=1$.
+
+\subsection{MG circle}
+We could use V-circle or W-circle. The resulting MGCG satisfy the condition we need.
+
+Full-circle????NOT SURE
+
+
+\section{Advantage}
+The CG iteration steps is independent with grid size. 
+
+
+
+
+
+\end{document}
