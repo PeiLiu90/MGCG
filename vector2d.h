@@ -55,10 +55,18 @@ public:
     T & operator() (const int & i, const int & j) {return _data[i*_M+j];}
     const T & operator()( const int & i, const int & j) const {return _data[i*_M+j];}
 
-    int size() const {return _N*_M;}
+    int size() const {return _size;}
     int size1() const {return _N;}
     int size2() const {return _M;}
 
+    const Vec2d<T> & operator=(const T & a)
+    {
+        for(int i=0;i<_size;i++)
+        {
+            _data[i]=a;
+        }
+        return *this;
+    }
     const Vec2d<T> & operator=(const Vec2d<T> & u)
     {
         for(int i=0;i<_size;i++)

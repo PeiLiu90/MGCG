@@ -247,6 +247,16 @@ T normmax(const VecExpression<E,T> & u)
     return tmp;
 }
 
+template<typename E1, typename E2, typename T>
+void product(const VecExpression<E1,T> & u, const VecExpression<E2,T> & v, double & p)
+{
+    p=0;
+    for(int i=0;i<u.size();i++)
+    {
+        p+=u(i)*v(i);
+    }
+}
+
 template<typename E, typename T>
 ostream & operator<<(ostream & cout, const VecExpression<E,T> & u)
 {

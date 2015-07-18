@@ -1,22 +1,47 @@
-#include "Helmholtz2d.h"
+#include "MGCG.h"
+#include "Equation.h"
+#include <iostream>
+#include <iomanip>
+using namespace std;
 
 int main()
 {
-    const int Nx=4;
-    const int Ny=4;
-    const double h = 2./double(Nx);
-    const int M=7;
-    Helmholtz2d<double,Nx,Ny,M> test(h);
-    test.SetMat();
-    test.SetRHS();
+    const int L=10;
+    const int N=2;
+    const int M=N;
+    MGCG test(L,N,M);
+    test.SetCoord(0,2,0,2);
+    test.SetLHS(sigma,kappa);
+    test.SetRHS(source);
     test.Solve();
-
-    cout<<norm(test._unknown[M-1]-test._exact)<<endl;
-
-    Vec2d<double> rhs(Nx*64,Ny*64);
-    test._mat[M-1].Product(test._unknown[M-1],rhs);
-    Vec2d<double> rhs2(Nx*64,Ny*64);
-    test._mat[M-1].Product(test._exact,rhs2);
-    cout<<norm(rhs-rhs2)<<"  "<<norm(rhs-test._b)<<"  "<<norm(rhs2-test._b)<<endl;
     return 0;
 }
+
+
+
+
+
+//int main()
+//{
+//    const int N=100;
+//    const int M=N;
+//
+//    RBSGS test;
+//    test.SetSize(N,M);
+//    test.SetCoord(0,2,0,2);
+//    test.SetEps(sigma);
+//    test.SetK2(kappa);
+//    test.ComputeD();
+//    test.SetRHS(source);
+//    Vec2d<double> ex(N,M);
+//    for(int i=0;i<N;i++)
+//    {
+//        for(int j=0;j<M;j++)
+//        {
+//            ex(i,j)=exact(test._x(i),test._y(j));
+//        }
+//    }
+//    test.Solve();
+//    cout<<norm(ex-test.u);
+//    return 0;
+//}

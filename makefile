@@ -1,16 +1,12 @@
+objects = main.o
 CXX=g++
 CFLAGS=-O3 
-
-objects = main.o
-
-all: $(objects) run
-
-$(objects): %.o: %.cpp
-	$(CXX) -c $(CFLAGS) $< -o $@ 
 
 run: $(objects)
 	$(CXX) $(CFLAGS) -o run $(objects)
 
+main.o: main.cpp MGCG.h MultiGrid.h RBSGS.h vector2d.h vec.h
+	$(CXX) $(CFLAGS) -c main.cpp -o main.o
 .PHONY:clean
 clean:
-	-rm -f run $(objects)
+	-rm run $(objects)
