@@ -15,10 +15,11 @@ public:
     void SetCoord(const double & , const double & ,const double &, const double &, const double &, const double &);
     void SetLHS(double (*)(const double &, const double &, const double &),double (*)(const double &, const double &, const double &));
     void SetRHS(double (*)(const double &, const double &, const double &));
+    void SetEx(double (*)(const double &, const double &, const double &));
 
     void Solve();
     void SolveCG();
-
+//private:
     Vec3d<double> x;
     Vec3d<double> r;
     Vec3d<double> z;
@@ -68,6 +69,11 @@ void MGCG3d::SetCoord(const double & xmin, const double & xmax, const double & y
     sys.SetCoord(xmin,xmax,ymin,ymax,zmin,zmax);
 }
 
+void MGCG3d::SetEx(double (*g)(const double &, const double &, const double& ))
+{
+    sys.grid[_size-1].SetEx(g);
+}
+
 void MGCG3d::SolveCG()
 {
     x=0.;
@@ -94,37 +100,31 @@ void MGCG3d::SolveCG()
 
 void MGCG3d::Solve()
 {
-    sys.grid[_size-1].f=r;
-    sys.grid[_size-1].PreSmooth();
-    sys.FineToCoarse(1);
-    cout.precision(3);
-    fixed(cout);
-    cout<<sys.grid[_size-1].u<<endl;
-//    x=0.;
-//    sys.Precondition(r,z);
-//    p=z;
-//    double error=1.;
-//    int itr=0;
-//    while(error>1.E-6)
-//    {
-//        itr++;
-//        sys.grid[_size-1].ComputeAP(p,Ap);
-//        product(p,Ap,pAp);
-//        product(r,z,rz);
-//        alpha=rz/pAp;
-//        beta=rz;
-//        x+=alpha*p;
-//        r-=alpha*Ap;
-//        error=norm(r);
-//        if(alpha<1.E-8){
-//            break;
-//        }
-//        cout<<itr<<"  "<<error<<"  "<<alpha<<"  "<<beta<<endl;
-//        sys.Precondition(r,z);
-//        product(r,z,rz);
-//        beta=rz/beta;
-//        p=beta*p+z;
-//    }
+    x=0.;
+    sys.Precondition(r,z);
+    p=z;
+    double error=1.;
+    int itr=0;
+    while(error>1.E-6)
+    {
+        itr++;
+        sys.grid[_size-1].ComputeAP(p,Ap);
+        product(p,Ap,pAp);
+        product(r,z,rz);
+        alpha=rz/pAp;
+        beta=rz;
+        x+=alpha*p;
+        r-=alpha*Ap;
+        error=norm(r);
+        if(alpha<1.E-8){
+            break;
+        }
+        cout<<itr<<"  "<<error<<"  "<<alpha<<"  "<<beta<<endl;
+        sys.Precondition(r,z);
+        product(r,z,rz);
+        beta=rz/beta;
+        p=beta*p+z;
+    }
 }
 
 #endif // MGCG3d_H

@@ -164,7 +164,7 @@ void MG3d::CoarseToFine(const int & p)
             }
             grid[p+1].u(i*2,j*2,grid[p+1].L-2)+=grid[p].u(i,j,grid[p].L-1);
             grid[p+1].u(i*2+1,j*2,grid[p+1].L-2)+= (grid[p].u(i,j,grid[p].L-1)+grid[p].u(i+1,j,grid[p].L-1))/2.;
-            grid[p+1].u(i*2,j*2+1,grid[p+1].L-2)+= (grid[p].u(i,j,grid[p].L-1)+grid[p].u(i,j+1,grid[p].L-1))/2.;
+            grid[p+1].u(i*2,j*2+1,grid[p+1].L-2)+=(grid[p].u(i,j,grid[p].L-1)+grid[p].u(i,j+1,grid[p].L-1))/2.;
             grid[p+1].u(i*2,j*2,grid[p+1].L-1)+= (grid[p].u(i,j,grid[p].L-1)+grid[p].u(i,j,0))/2.;
             grid[p+1].u(i*2+1,j*2+1,grid[p+1].L-2)+= (grid[p].u(i,j,grid[p].L-1)+grid[p].u(i+1,j,grid[p].L-1)+grid[p].u(i,j+1,grid[p].L-1)+grid[p].u(i+1,j+1,grid[p].L-1))/4.;
             grid[p+1].u(i*2+1,j*2,grid[p+1].L-1)+= (grid[p].u(i,j,grid[p].L-1)+grid[p].u(i+1,j,grid[p].L-1)+grid[p].u(i,j,0)+grid[p].u(i+1,j,0))/4.;
@@ -182,10 +182,64 @@ void MG3d::CoarseToFine(const int & p)
         grid[p+1].u(i*2+1,grid[p+1].M-1,grid[p+1].L-1)+= (grid[p].u(i,grid[p].M-1,grid[p].L-1)+grid[p].u(i+1,grid[p].M-1,grid[p].L-1)+grid[p].u(i,0,grid[p].L-1)+grid[p].u(i,grid[p].M-1,0)
                                     +grid[p].u(i+1,0,grid[p].L-1)+grid[p].u(i+1,grid[p].M-1,0)+grid[p].u(i,0,0)+grid[p].u(i+1,0,0))/8.;
     }
+    for(int j=0;j<grid[p].M-1;j++)
+    {
+        for(int k=0;k<grid[p].L-1;k++)
+        {
+            grid[p+1].u(grid[p+1].N-2,j*2,k*2)+=grid[p].u(grid[p].N-1,j,k);
+            grid[p+1].u(grid[p+1].N-1,j*2,k*2)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(0,j,k))/2.;
+            grid[p+1].u(grid[p+1].N-2,j*2+1,k*2)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(grid[p].N-1,j+1,k))/2.;
+            grid[p+1].u(grid[p+1].N-2,j*2,k*2+1)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(grid[p].N-1,j,k+1))/2.;
+            grid[p+1].u(grid[p+1].N-1,j*2+1,k*2)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(0,j,k)+grid[p].u(grid[p].N-1,j+1,k)+grid[p].u(0,j+1,k))/4.;
+            grid[p+1].u(grid[p+1].N-1,j*2,k*2+1)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(0,j,k)+grid[p].u(grid[p].N-1,j,k+1)+grid[p].u(0,j,k+1))/4.;
+            grid[p+1].u(grid[p+1].N-2,j*2+1,k*2+1)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(grid[p].N-1,j+1,k)+grid[p].u(grid[p].N-1,j,k+1)+grid[p].u(grid[p].N-1,j+1,k+1))/4.;
+            grid[p+1].u(grid[p+1].N-1,j*2+1,k*2+1)+= (grid[p].u(grid[p].N-1,j,k)+grid[p].u(0,j,k)+grid[p].u(grid[p].N-1,j+1,k)+grid[p].u(grid[p].N-1,j,k+1)+
+                                        grid[p].u(0,j+1,k)+grid[p].u(0,j,k+1)+grid[p].u(grid[p].N-1,j+1,k+1)+grid[p].u(0,j+1,k+1))/8.;
+        }
+        grid[p+1].u(grid[p+1].N-2,j*2,grid[p+1].L-2)+=grid[p].u(grid[p].N-1,j,grid[p].L-1);
+        grid[p+1].u(grid[p+1].N-1,j*2,grid[p+1].L-2)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(0,j,grid[p].L-1))/2.;
+        grid[p+1].u(grid[p+1].N-2,j*2+1,grid[p+1].L-2)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(grid[p].N-1,j+1,grid[p].L-1))/2.;
+        grid[p+1].u(grid[p+1].N-2,j*2,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(grid[p].N-1,j,0))/2.;
+        grid[p+1].u(grid[p+1].N-1,j*2+1,grid[p+1].L-2)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(0,j,grid[p].L-1)+grid[p].u(grid[p].N-1,j+1,grid[p].L-1)+grid[p].u(0,j+1,grid[p].L-1))/4.;
+        grid[p+1].u(grid[p+1].N-1,j*2,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(0,j,grid[p].L-1)+grid[p].u(grid[p].N-1,j,0)+grid[p].u(0,j,0))/4.;
+        grid[p+1].u(grid[p+1].N-2,j*2+1,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(grid[p].N-1,j+1,grid[p].L-1)+grid[p].u(grid[p].N-1,j,0)+grid[p].u(grid[p].N-1,j+1,0))/4.;
+        grid[p+1].u(grid[p+1].N-1,j*2+1,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,j,grid[p].L-1)+grid[p].u(0,j,grid[p].L-1)+grid[p].u(grid[p].N-1,j+1,grid[p].L-1)+grid[p].u(grid[p].N-1,j,0)+
+                                    grid[p].u(0,j+1,grid[p].L-1)+grid[p].u(0,j,0)+grid[p].u(grid[p].N-1,j+1,0)+grid[p].u(0,j+1,0))/8.;
+
+    }
+    for(int k=0;k<grid[p].L-1;k++)
+    {
+            grid[p+1].u(grid[p+1].N-2,grid[p+1].M-2,k*2)+=grid[p].u(grid[p].N-1,grid[p].M-1,k);
+            grid[p+1].u(grid[p+1].N-1,grid[p+1].M-2,k*2)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(0,grid[p].M-1,k))/2.;
+            grid[p+1].u(grid[p+1].N-2,grid[p+1].M-1,k*2)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(grid[p].N-1,0,k))/2.;
+            grid[p+1].u(grid[p+1].N-2,grid[p+1].M-2,k*2+1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(grid[p].N-1,grid[p].M-1,k+1))/2.;
+            grid[p+1].u(grid[p+1].N-1,grid[p+1].M-1,k*2)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(0,grid[p].M-1,k)+grid[p].u(grid[p].N-1,0,k)+grid[p].u(0,0,k))/4.;
+            grid[p+1].u(grid[p+1].N-1,grid[p+1].M-2,k*2+1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(0,grid[p].M-1,k)+grid[p].u(grid[p].N-1,grid[p].M-1,k+1)+grid[p].u(0,grid[p].M-1,k+1))/4.;
+            grid[p+1].u(grid[p+1].N-2,grid[p+1].M-1,k*2+1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(grid[p].N-1,0,k)+grid[p].u(grid[p].N-1,grid[p].M-1,k+1)+grid[p].u(grid[p].N-1,0,k+1))/4.;
+            grid[p+1].u(grid[p+1].N-1,grid[p+1].M-1,k*2+1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,k)+grid[p].u(0,grid[p].M-1,k)+grid[p].u(grid[p].N-1,0,k)+grid[p].u(grid[p].N-1,grid[p].M-1,k+1)+
+                                        grid[p].u(0,0,k)+grid[p].u(0,grid[p].M-1,k+1)+grid[p].u(grid[p].N-1,0,k+1)+grid[p].u(0,0,k+1))/8.;
+
+    }
+    for(int i=0;i<grid[p].N-1;i++)
+    {
+        for(int k=0;k<grid[p].L-1;k++)
+        {
+                grid[p+1].u(i*2,grid[p+1].M-2,k*2)+=grid[p].u(i,grid[p].M-1,k);
+                grid[p+1].u(i*2+1,grid[p+1].M-2,k*2)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i+1,grid[p].M-1,k))/2.;
+                grid[p+1].u(i*2,grid[p+1].M-1,k*2)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i,0,k))/2.;
+                grid[p+1].u(i*2,grid[p+1].M-2,k*2+1)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i,grid[p].M-1,k+1))/2.;
+                grid[p+1].u(i*2+1,grid[p+1].M-1,k*2)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i+1,grid[p].M-1,k)+grid[p].u(i,0,k)+grid[p].u(i+1,0,k))/4.;
+                grid[p+1].u(i*2+1,grid[p+1].M-2,k*2+1)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i+1,grid[p].M-1,k)+grid[p].u(i,grid[p].M-1,k+1)+grid[p].u(i+1,grid[p].M-1,k+1))/4.;
+                grid[p+1].u(i*2,grid[p+1].M-1,k*2+1)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i,0,k)+grid[p].u(i,grid[p].M-1,k+1)+grid[p].u(i,0,k+1))/4.;
+                grid[p+1].u(i*2+1,grid[p+1].M-1,k*2+1)+= (grid[p].u(i,grid[p].M-1,k)+grid[p].u(i+1,grid[p].M-1,k)+grid[p].u(i,0,k)+grid[p].u(i,grid[p].M-1,k+1)+
+                                            grid[p].u(i+1,0,k)+grid[p].u(i+1,grid[p].M-1,k+1)+grid[p].u(i,0,k+1)+grid[p].u(i+1,0,k+1))/8.;
+
+        }
+    }
     grid[p+1].u(grid[p+1].N-2,grid[p+1].M-2,grid[p+1].L-2)+=grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1);
     grid[p+1].u(grid[p+1].N-1,grid[p+1].M-2,grid[p+1].L-2)+= (grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(0,grid[p].M-1,grid[p].L-1))/2.;
-    grid[p+1].u(grid[p+1].N-2,grid[p+1].M-1,grid[p+1].L-2)+= (grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,0,grid[p].L-1))/2.;
-    grid[p+1].u(grid[p+1].N-2,grid[p+1].M-2,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,grid[p].M-1,0))/2.;
+    grid[p+1].u(grid[p+1].N-2,grid[p+1].M-1,grid[p+1].L-2)+=(grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,0,grid[p].L-1))/2.;
+    grid[p+1].u(grid[p+1].N-2,grid[p+1].M-2,grid[p+1].L-1)+=(grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,grid[p].M-1,0))/2.;
     grid[p+1].u(grid[p+1].N-1,grid[p+1].M-1,grid[p+1].L-2)+= (grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(0,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,0,grid[p].L-1)+grid[p].u(0,0,grid[p].L-1))/4.;
     grid[p+1].u(grid[p+1].N-1,grid[p+1].M-2,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(0,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,grid[p].M-1,0)+grid[p].u(0,grid[p].M-1,0))/4.;
     grid[p+1].u(grid[p+1].N-2,grid[p+1].M-1,grid[p+1].L-1)+= (grid[p].u(grid[p].N-1,grid[p].M-1,grid[p].L-1)+grid[p].u(grid[p].N-1,0,grid[p].L-1)+grid[p].u(grid[p].N-1,grid[p].M-1,0)+grid[p].u(grid[p].N-1,0,0))/4.;
