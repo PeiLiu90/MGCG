@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-    const int L=10;
+    const int L=9;
     const int N=2;
     const int M=N;
     MGCG test(L,N,M);

@@ -1,0 +1,29 @@
+# depslib dependency file v1.0
+1437377017 source:/home/liupei/Desktop/github/MGCG/3d/main.cpp
+	"MGCG3d.h"
+	"Equation.h"
+	<iostream>
+
+1437377042 /home/liupei/Desktop/github/MGCG/3d/MultiGrid3d.h
+	"RBSGS3d.h"
+
+1437377042 /home/liupei/Desktop/github/MGCG/3d/RBSGS3d.h
+	"vector3d.h"
+
+1437312484 /home/liupei/Desktop/github/MGCG/3d/vector3d.h
+	"math.h"
+	"vec.h"
+
+1437201968 /home/liupei/Desktop/github/MGCG/3d/vec.h
+	"math.h"
+	<iostream>
+
+1437375082 /home/liupei/Desktop/github/MGCG/3d/Equation.h
+	"math.h"
+
+1437377721 /home/liupei/Desktop/github/MGCG/3d/MGCG3d.h
+	"MultiGrid3d.h"
+	"math.h"
+	<iostream>
+	<iomanip>
+

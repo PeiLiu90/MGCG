@@ -131,7 +131,7 @@ void MG::Solve()
 void MG::Precondition(const Vec2d<double> & b, Vec2d<double> &x)
 {
     grid[_size-1].f=b;
-    grid[_size-1].PreSmooth();
+    //grid[_size-1].PreSmooth();
     for(int i=_size-1;i>0;i--)
     {
         grid[i].PreSmooth();
